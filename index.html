@@ -473,6 +473,16 @@
         <div class="action-title">📝 최단 대응 내용</div>
         <div id="recAction">-</div>
       </div>
+      <!-- 계약자 정보 섹션 -->
+      <div class="rec-section" id="recContractSection" style="display:none;">
+        <div class="rec-section-title">📋 계약자 정보</div>
+        <div class="rec-grid" id="recContractGrid"></div>
+      </div>
+      <!-- 연체 내역 섹션 -->
+      <div class="rec-section" id="recOverdueSection" style="display:none;">
+        <div class="rec-section-title orange">⚠️ 연체 내역</div>
+        <div id="recOverdueContent"></div>
+      </div>
     </div>
   </div>
 
@@ -1062,6 +1072,131 @@ function renderRecovery() {
     </div>`).join('');
 }
 
+// ═══ CONTRACT MAP (계약관리 매칭) ═════════════════════════════════
+function buildContractMap(gyeyakRows) {
+  contractMap = {};
+  if (!gyeyakRows || gyeyakRows.length < 3) return;
+  // Header row is index 1
+  for (let i = 2; i < gyeyakRows.length; i++) {
+    const row = gyeyakRows[i];
+    if (!Array.isArray(row)) continue;
+    const no = String(row[0]??'').trim();
+    if (!no || !/^\d{3,}/.test(no)) continue;
+    contractMap[no] = {
+      // 임대인정보
+      landlordName: String(row[40]??'').trim(),
+      landlordPhone: String(row[41]??'').trim(),
+      landlordAddr: String(row[42]??'').trim(),
+      landlordBank: String(row[43]??'').trim(),
+      landlordAccount: String(row[44]??'').trim(),
+      // 임차인정보
+      tenantName: String(row[45]??'').trim(),
+      tenantPhone: String(row[46]??'').trim(),
+      tenantId: String(row[47]??'').trim(),
+      tenantAddr: String(row[48]??'').trim(),
+      emergencyPhone: String(row[49]??'').trim(),
+      emergencyRel: String(row[50]??'').trim(),
+      // 연대보증인
+      guarantorName: String(row[51]??'').trim(),
+      guarantorPhone: String(row[52]??'').trim(),
+      // 계약정보
+      contractAddr: String(row[19]??'').trim(),
+      buildingName: String(row[20]??'').trim(),
+      roomNo: String(row[21]??'').trim(),
+      startDate: String(row[22]??'').trim(),
+      endDate: String(row[23]??'').trim(),
+      deposit: row[32],
+      monthlyRent: row[33],
+      mgmtFee: row[35],
+      serviceFee: row[37],
+      contractStatus: String(row[10]??'').trim(),
+      // 연체정보
+      rentOverdue: String(row[67]??'').trim(),
+      feeOverdue: String(row[68]??'').trim(),
+      etcOverdue: String(row[69]??'').trim(),
+      billingCnt: String(row[70]??'').trim(),
+      overdueCnt: String(row[71]??'').trim(),
+      maxOverdueDays: String(row[72]??'').trim(),
+      totalOverdueDays: String(row[73]??'').trim(),
+      overdueRatio: String(row[74]??'').trim(),
+      firstOverdue: String(row[75]??'').trim(),
+      overdueGrade: String(row[76]??'').trim(),
+      overdueAmt: row[77],
+      exitSettle: row[78],
+    };
+  }
+}
+
+function fillContractInfo(contractNo) {
+  const sec = document.getElementById('recContractSection');
+  const grid = document.getElementById('recContractGrid');
+  const c = contractMap[contractNo];
+  if (!c) {
+    sec.style.display = 'block';
+    grid.innerHTML = '<div class="rec-no-match">계약관리 시트에 매칭되는 데이터가 없습니다</div>';
+    document.getElementById('recOverdueSection').style.display = 'none';
+    return;
+  }
+  sec.style.display = 'block';
+
+  const item = (lbl, val, full) => `<div class="rec-grid-item${full?' full':''}"><span class="rg-lbl">${lbl}</span><span class="rg-val">${val||'-'}</span></div>`;
+
+  grid.innerHTML = 
+    '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:#ff80ab;background:rgba(233,30,140,0.06);">임대인(갑)</div>' +
+    item('임대인', c.landlordName) +
+    item('연락처', c.landlordPhone) +
+    item('은행', c.landlordBank) +
+    item('계좌', c.landlordAccount) +
+    (c.landlordAddr ? item('주소', c.landlordAddr, true) : '') +
+    '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:var(--cyan);background:rgba(0,212,255,0.06);">임차인(을)</div>' +
+    item('임차인', c.tenantName || c.landlordName) +
+    item('연락처', c.tenantPhone) +
+    item('긴급연락처', c.emergencyPhone) +
+    item('관계/이름', c.emergencyRel) +
+    (c.tenantAddr ? item('주소', c.tenantAddr, true) : '') +
+    (c.guarantorName ? 
+      '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:#b39dff;background:rgba(179,157,255,0.06);">연대보증인/공동계약자</div>' +
+      item('이름', c.guarantorName) +
+      item('연락처', c.guarantorPhone) : '') +
+    '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:#00ff88;background:rgba(0,255,136,0.06);">계약 상세</div>' +
+    item('계약상태', c.contractStatus) +
+    item('건물명/호수', (c.buildingName?c.buildingName+' ':'')+(c.roomNo||'')) +
+    (c.contractAddr ? item('주소', c.contractAddr, true) : '') +
+    item('시작일', c.startDate) +
+    item('종료일', c.endDate) +
+    item('월세', typeof c.monthlyRent==='number'?fmt(c.monthlyRent):String(c.monthlyRent||'-')) +
+    item('관리비', typeof c.mgmtFee==='number'?fmt(c.mgmtFee):String(c.mgmtFee||'-')) +
+    item('수수료', typeof c.serviceFee==='number'?fmt(c.serviceFee):String(c.serviceFee||'-')) +
+    item('보증금', typeof c.deposit==='number'?fmt(c.deposit):String(c.deposit||'-'));
+
+  // 연체 내역 섹션
+  const oSec = document.getElementById('recOverdueSection');
+  const oContent = document.getElementById('recOverdueContent');
+  oSec.style.display = 'block';
+
+  const rentAmt = typeof c.overdueAmt==='number' ? c.overdueAmt : 0;
+  const exitAmt = typeof c.exitSettle==='number' ? c.exitSettle : 0;
+
+  oContent.innerHTML = `
+    <table class="rec-overdue-table">
+      <tr><th>항목</th><th>상태</th><th style="text-align:right">금액</th></tr>
+      <tr><td>임대료</td><td>${c.rentOverdue||'-'}</td><td class="amount${c.rentOverdue==='연체'?' red':''}">${rentAmt?fmt(rentAmt):'-'}</td></tr>
+      <tr><td>수수료</td><td>${c.feeOverdue||'-'}</td><td class="amount${c.feeOverdue==='연체'?' red':''}">-</td></tr>
+      <tr><td>기타관리비</td><td>${c.etcOverdue||'-'}</td><td class="amount">-</td></tr>
+      <tr><td>퇴실정산</td><td>-</td><td class="amount${exitAmt>0?' red':''}">${exitAmt?fmt(exitAmt):'-'}</td></tr>
+    </table>
+    <div class="rec-overdue-summary">
+      <div class="rec-overdue-stat"><div class="ros-val">${c.billingCnt||'-'}</div><div class="ros-lbl">청구수</div></div>
+      <div class="rec-overdue-stat"><div class="ros-val">${c.overdueCnt||'-'}</div><div class="ros-lbl">연체횟수</div></div>
+      <div class="rec-overdue-stat"><div class="ros-val">${c.maxOverdueDays||'-'}</div><div class="ros-lbl">최장연체일</div></div>
+      <div class="rec-overdue-stat"><div class="ros-val">${c.overdueRatio||'-'}</div><div class="ros-lbl">연체비율</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+      <div class="rec-overdue-stat"><div class="ros-val">${c.totalOverdueDays||'-'}</div><div class="ros-lbl">연체누적일</div></div>
+      <div class="rec-overdue-stat"><div class="ros-val">${c.firstOverdue||'-'}</div><div class="ros-lbl">첫 연체</div></div>
+    </div>`;
+}
+
 // ═══ RECORD SEARCH ════════════════════════════════════════════════
 function quickSearch(no) {
   document.getElementById('recInput').value = no;
@@ -1104,6 +1239,7 @@ function fillRecord(r) {
     else stages[3].classList.add('s-redpp');
   }
   document.getElementById('recPanel').classList.add('show');
+  fillContractInfo(r.no);
 }
 
 // ═══ RENDER FROM DATA ═════════════════════════════════════════════
@@ -1115,6 +1251,7 @@ function renderFromData(data, source) {
   renderTable();
   renderMainCharts();
   renderRecovery();
+  buildContractMap(data['계약관리'] || []);
   renderGradeChart(data['계약관리'] || []);
   const ts = data.updated ? new Date(data.updated).toLocaleString('ko-KR', {timeZone:'Asia/Seoul'}) : new Date().toLocaleString('ko-KR', {timeZone:'Asia/Seoul'});
   const tagMap = { github:'<span class="data-source-tag github">GitHub</span>', csv:'<span class="data-source-tag csv">CSV</span>', cache:'<span class="data-source-tag cache">캐시</span>', sample:'<span class="data-source-tag sample">샘플</span>' };
