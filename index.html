@@ -973,14 +973,22 @@ function renderMainCharts() {
   });
 
   if (chartType) chartType.destroy();
-  const tKeys = Object.keys(types).sort((a,b)=>types[b]-types[a]).slice(0,6);
+  // 연체구분 색상 매핑 (연체관리 I열 기준)
+  const typeColorMap = {
+    '연체납부':'#00d4ff', '연체중':'#e91e8c', '분납중':'#7c4dff',
+    '공실':'#ffd600', '공실협상':'#ffaa00', '미분류':'#4a6080'
+  };
+  const tKeys = Object.keys(types).sort((a,b)=>types[b]-types[a]).slice(0,8);
+  const tColors = tKeys.map(k => typeColorMap[k] || '#00ff88');
   chartType = new Chart(document.getElementById('chartType'), {
     type:'bar',
     data: { labels:tKeys, datasets:[{ data:tKeys.map(k=>types[k]),
-      backgroundColor:'#00d4ff', borderRadius:6 }] },
+      backgroundColor:tColors, borderRadius:6, borderSkipped:false }] },
     options: { responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{ y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#4a6080'}}, x:{grid:{display:false},ticks:{font:{size:10},color:'#4a6080'}} } }
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(ctx){return ctx.parsed.y+'명 ('+((ctx.parsed.y/allRows.length)*100).toFixed(1)+'%)';}}}
+      },
+      scales:{ y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#4a6080',stepSize:10}}, x:{grid:{display:false},ticks:{font:{size:11,weight:'bold'},color:'#8aa0b8'}} } }
   });
 }
 
