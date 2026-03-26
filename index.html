@@ -645,28 +645,51 @@ function parseKPIs(rows) {
     realyo:'-', sangup:'-', jugeo:'-', totalContracts:0
   };
 
-  for (let i=0; i<Math.min(rows.length,16); i++) {
+  for (let i=0; i<Math.min(rows.length,18); i++) {
     const row = rows[i];
     if (!Array.isArray(row)) continue;
     const vals = row.map(c => String(c??'').trim());
     const any  = pat => vals.some(v => pat.test(v));
 
+    // 계약중 : 75명 + 금액(col 2)
     if (any(/계약중/)) {
       for (const v of vals) {
         if (/계약중/.test(v)) { const m=v.match(/(\d+)/); if(m){kpi.total=m[1]+'명';kpi.totalNum=parseInt(m[1]);} }
       }
-      const d=row[3]; if(typeof d==='number'&&d>0) kpi.amtActive=fmt(d);
+      for (let c=1; c<row.length; c++) {
+        const d=row[c]; if(typeof d==='number'&&d>1000) { kpi.amtActive=fmt(d); break; }
+        if(typeof d==='string'){ const m=d.replace(/,/g,'').match(/^(\d{5,})$/); if(m){kpi.amtActive=fmt(parseInt(m[1]));break;} }
+      }
     }
-    if (any(/종료/))  { const d=row[3]; if(typeof d==='number'&&d>0) kpi.amtEnded=fmt(d); }
-    if (any(/실료/))  { for(const v of vals){if(/^\d+명$/.test(v)) kpi.realyo=v;} }
-    if (any(/상업/))  { for(const v of vals){if(/^\d+명$/.test(v)) kpi.sangup=v;} }
-    if (any(/주거/))  { for(const v of vals){if(/^\d+명$/.test(v)) kpi.jugeo=v;} }
+    // 종료 : 금액
+    if (any(/종료/)) {
+      for (let c=1; c<row.length; c++) {
+        const d=row[c]; if(typeof d==='number'&&d>1000) { kpi.amtEnded=fmt(d); break; }
+        if(typeof d==='string'){ const m=d.replace(/,/g,'').match(/^(\d{5,})$/); if(m){kpi.amtEnded=fmt(parseInt(m[1]));break;} }
+      }
+    }
+    // 실퇴:10명, 상업연체:7명, 주거연체:56명
+    if (any(/실퇴|실료/))  { for(const v of vals){ const m=v.match(/(\d+)명/); if(m){kpi.realyo=m[1]+'명';break;} } }
+    if (any(/상업/))  { for(const v of vals){ const m=v.match(/(\d+)명/); if(m){kpi.sangup=m[1]+'명';break;} } }
+    if (any(/주거/))  { for(const v of vals){ const m=v.match(/(\d+)명/); if(m){kpi.jugeo=m[1]+'명';break;} } }
 
+    // 30일초과, 30일이하, 15일이하, 1일~3일 buckets
     const parseBucket = (row) => {
-      const c1=row[1], c2=row[2], c3=row[3];
-      const cnt = typeof c1==='number' ? c1 : null;
-      let pct = typeof c2==='number' ? (c2<1?(c2*100).toFixed(2)+'%':c2+'%') : (c2?String(c2):'');
-      if (!pct && typeof c3==='number') pct = (c3<1?(c3*100).toFixed(2)+'%':c3+'%');
+      let cnt=null, pct=null;
+      for (const v of row) {
+        const s = String(v??'').trim();
+        // "15명" 형태
+        const mCnt = s.match(/^(\d+)명$/);
+        if (mCnt && cnt===null) { cnt=parseInt(mCnt[1]); continue; }
+        // "1.59%" 형태
+        const mPct = s.match(/^([\d.]+)%$/);
+        if (mPct && pct===null) { pct=mPct[1]+'%'; continue; }
+        // 순수 숫자: 작으면 비율, 크면 인원
+        if (typeof v==='number') {
+          if (v>0 && v<1 && pct===null) { pct=(v*100).toFixed(2)+'%'; }
+          else if (v>=1 && v<200 && cnt===null) { cnt=Math.round(v); }
+        }
+      }
       if (pct && cnt) {
         const ratio = parseFloat(pct.replace('%','')) / 100;
         if (ratio>0) { const tot=Math.round(cnt/ratio); if(tot>0&&!kpi.totalContracts) kpi.totalContracts=tot; }
@@ -1063,7 +1086,7 @@ function fillRecord(r) {
 function renderFromData(data, source) {
   document.getElementById('notice').style.display = 'none';
   const rows = data['연체관리'] || [];
-  renderKPIs(parseKPIs(rows.slice(0, 12)));
+  renderKPIs(parseKPIs(rows.slice(0, 18)));
   parseTable(rows);
   renderTable();
   renderMainCharts();
