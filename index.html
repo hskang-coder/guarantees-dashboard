@@ -524,9 +524,33 @@ const cs = (row, i) => { const v=cv(row,i); return v!==null?String(v).trim():'';
 
 // Parse raw cell to JS Date (returns null if not a date)
 function parseDate(v) {
-  if (v===null||v===undefined||v==='') return null;
-  if (typeof v==='string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) {
-    const d = new Date(v);
+  if (v===null||v===undefined||v===''||v==='-') return null;
+  const s = String(v).trim();
+  // ISO format: 2024-01-01T...
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = new Date(s);
+    if(!isNaN(d.getTime())) { d.setHours(0,0,0,0); return d; }
+  }
+  // "M. D" or "M.D" format (e.g. "4. 10", "3.25") — assumes current year
+  const mShort = s.match(/^(\d{1,2})\s*\.\s*(\d{1,2})$/);
+  if (mShort) {
+    const mon = parseInt(mShort[1]) - 1;
+    const day = parseInt(mShort[2]);
+    const y = TODAY.getFullYear();
+    const d = new Date(y, mon, day);
+    if(!isNaN(d.getTime())) { d.setHours(0,0,0,0); return d; }
+  }
+  // "YYYY/MM/DD" or "YYYY.MM.DD" format
+  const mFull = s.match(/^(\d{4})[/\.](\d{1,2})[/\.](\d{1,2})$/);
+  if (mFull) {
+    const d = new Date(parseInt(mFull[1]), parseInt(mFull[2])-1, parseInt(mFull[3]));
+    if(!isNaN(d.getTime())) { d.setHours(0,0,0,0); return d; }
+  }
+  // "M월 D일" format
+  const mKr = s.match(/(\d{1,2})월\s*(\d{1,2})일/);
+  if (mKr) {
+    const y = TODAY.getFullYear();
+    const d = new Date(y, parseInt(mKr[1])-1, parseInt(mKr[2]));
     if(!isNaN(d.getTime())) { d.setHours(0,0,0,0); return d; }
   }
   if (v instanceof Date && !isNaN(v.getTime())) {
