@@ -228,25 +228,40 @@
   .rf-key { width:90px; font-size:11px; color:var(--text-dim); font-weight:600; flex-shrink:0; }
   .rf-val { font-size:12px; font-weight:600; color:var(--text); }
   .action-box { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-top:12px; font-size:12px; line-height:1.7; color:var(--text); }
-  /* Contract Info & Overdue Detail */
-  .rec-section { margin-top:14px; }
-  .rec-section-title { font-size:12px; font-weight:800; color:var(--cyan); margin-bottom:8px; padding:6px 12px; background:rgba(0,212,255,0.08); border-left:3px solid var(--cyan); border-radius:0 6px 6px 0; letter-spacing:0.5px; }
-  .rec-section-title.orange { color:#ffaa00; background:rgba(255,170,0,0.08); border-left-color:#ffaa00; }
-  .rec-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(255,255,255,0.04); border-radius:8px; overflow:hidden; }
-  .rec-grid-item { display:flex; padding:8px 12px; background:var(--bg-card); gap:8px; }
-  .rec-grid-item .rg-lbl { font-size:11px; color:var(--text-dim); min-width:72px; flex-shrink:0; }
-  .rec-grid-item .rg-val { font-size:12px; color:var(--text-light); font-weight:500; word-break:break-all; }
+  /* Contract Info & Overdue Detail - Enhanced */
+  .rec-section { margin-top:16px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg-card); }
+  .rec-section-title { font-size:13px; font-weight:800; color:#fff; margin:0; padding:10px 16px; background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(0,212,255,0.05)); border-bottom:1px solid rgba(0,212,255,0.15); letter-spacing:0.5px; }
+  .rec-section-title.orange { background:linear-gradient(135deg,rgba(255,170,0,0.15),rgba(255,170,0,0.05)); border-bottom-color:rgba(255,170,0,0.15); }
+  .rec-sub-header { font-size:11px; font-weight:700; padding:7px 16px; margin:0; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; gap:6px; }
+  .rec-sub-header::before { content:''; width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .rec-sub-header.pink { color:#ff80ab; background:rgba(233,30,140,0.04); }
+  .rec-sub-header.pink::before { background:#ff80ab; }
+  .rec-sub-header.cyan { color:var(--cyan); background:rgba(0,212,255,0.04); }
+  .rec-sub-header.cyan::before { background:var(--cyan); }
+  .rec-sub-header.purple { color:#b39dff; background:rgba(179,157,255,0.04); }
+  .rec-sub-header.purple::before { background:#b39dff; }
+  .rec-sub-header.green { color:#00ff88; background:rgba(0,255,136,0.04); }
+  .rec-sub-header.green::before { background:#00ff88; }
+  .rec-grid { display:grid; grid-template-columns:1fr 1fr; }
+  .rec-grid-item { display:flex; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,0.03); gap:10px; align-items:baseline; }
+  .rec-grid-item .rg-lbl { font-size:11px; color:var(--text-dim); min-width:76px; flex-shrink:0; }
+  .rec-grid-item .rg-val { font-size:13px; color:#e0e0e0; font-weight:600; word-break:break-all; }
+  .rec-grid-item .rg-val.highlight { color:var(--cyan); }
   .rec-grid-item.full { grid-column:1/-1; }
-  .rec-overdue-table { width:100%; border-collapse:collapse; font-size:12px; }
-  .rec-overdue-table th { text-align:left; padding:6px 10px; color:var(--text-dim); font-weight:600; font-size:11px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.06); }
-  .rec-overdue-table td { padding:6px 10px; color:var(--text-light); border-bottom:1px solid rgba(255,255,255,0.04); }
-  .rec-overdue-table td.amount { text-align:right; font-weight:700; font-family:'Poppins',sans-serif; }
-  .rec-overdue-table td.amount.red { color:var(--pink); }
-  .rec-overdue-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
-  .rec-overdue-stat { text-align:center; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px; }
-  .rec-overdue-stat .ros-val { font-size:16px; font-weight:800; color:var(--cyan); }
-  .rec-overdue-stat .ros-lbl { font-size:10px; color:var(--text-dim); margin-top:2px; }
-  .rec-no-match { font-size:12px; color:var(--text-dim); padding:12px; text-align:center; }
+  .rec-overdue-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .rec-overdue-table th { text-align:left; padding:8px 16px; color:var(--text-dim); font-weight:700; font-size:11px; background:rgba(255,255,255,0.02); border-bottom:1px solid rgba(255,255,255,0.06); text-transform:uppercase; letter-spacing:0.5px; }
+  .rec-overdue-table td { padding:10px 16px; color:var(--text-light); border-bottom:1px solid rgba(255,255,255,0.03); }
+  .rec-overdue-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .rec-overdue-table td.amount { text-align:right; font-weight:800; font-family:'Poppins',sans-serif; font-size:14px; }
+  .rec-overdue-table td.amount.red { color:var(--pink); text-shadow:0 0 12px rgba(233,30,140,0.3); }
+  .rec-overdue-table td.status-ok { color:#00ff88; }
+  .rec-overdue-table td.status-bad { color:var(--pink); font-weight:700; }
+  .rec-overdue-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(255,255,255,0.04); border-top:1px solid rgba(255,255,255,0.06); }
+  .rec-overdue-stat { text-align:center; padding:12px 8px; background:var(--bg-card); }
+  .rec-overdue-stat .ros-val { font-size:18px; font-weight:900; color:var(--cyan); font-family:'Poppins',sans-serif; }
+  .rec-overdue-stat .ros-lbl { font-size:10px; color:var(--text-dim); margin-top:3px; letter-spacing:0.3px; }
+  .rec-overdue-stat.warn .ros-val { color:var(--pink); }
+  .rec-no-match { font-size:12px; color:var(--text-dim); padding:16px; text-align:center; }
   .action-title { font-weight:700; color:white; margin-bottom:6px; font-size:12px; }
   .loader { text-align:center; padding:30px; color:var(--text-dim); }
 
@@ -1158,59 +1173,69 @@ function fillContractInfo(contractNo) {
   }
   sec.style.display = 'block';
 
-  const item = (lbl, val, full) => `<div class="rec-grid-item${full?' full':''}"><span class="rg-lbl">${lbl}</span><span class="rg-val">${val||'-'}</span></div>`;
+  const item = (lbl, val, full, cls) => {
+    const extra = cls ? ` ${cls}` : '';
+    return `<div class="rec-grid-item${full?' full':''}"><span class="rg-lbl">${lbl}</span><span class="rg-val${extra}">${val||'-'}</span></div>`;
+  };
+  const sub = (label, cls) => `<div class="rec-sub-header ${cls}">${label}</div>`;
 
-  grid.innerHTML = 
-    '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:#ff80ab;background:rgba(233,30,140,0.06);">임대인(갑)</div>' +
-    item('임대인', c.landlordName) +
+  grid.innerHTML =
+    sub('임대인 (갑)', 'pink') +
+    item('임대인', c.landlordName, false, 'highlight') +
     item('연락처', c.landlordPhone) +
     item('은행', c.landlordBank) +
     item('계좌', c.landlordAccount) +
     (c.landlordAddr ? item('주소', c.landlordAddr, true) : '') +
-    '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:var(--cyan);background:rgba(0,212,255,0.06);">임차인(을)</div>' +
-    item('임차인', c.tenantName || c.landlordName) +
+
+    sub('임차인 (을)', 'cyan') +
+    item('임차인', c.tenantName || '-', false, 'highlight') +
     item('연락처', c.tenantPhone) +
     item('긴급연락처', c.emergencyPhone) +
     item('관계/이름', c.emergencyRel) +
     (c.tenantAddr ? item('주소', c.tenantAddr, true) : '') +
-    (c.guarantorName ? 
-      '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:#b39dff;background:rgba(179,157,255,0.06);">연대보증인/공동계약자</div>' +
-      item('이름', c.guarantorName) +
+
+    (c.guarantorName ?
+      sub('연대보증인/공동계약자', 'purple') +
+      item('이름', c.guarantorName, false, 'highlight') +
       item('연락처', c.guarantorPhone) : '') +
-    '<div style="grid-column:1/-1;padding:6px 12px;font-size:11px;font-weight:700;color:#00ff88;background:rgba(0,255,136,0.06);">계약 상세</div>' +
+
+    sub('계약 상세', 'green') +
     item('계약상태', c.contractStatus) +
     item('건물명/호수', (c.buildingName?c.buildingName+' ':'')+(c.roomNo||'')) +
     (c.contractAddr ? item('주소', c.contractAddr, true) : '') +
     item('시작일', c.startDate) +
     item('종료일', c.endDate) +
-    item('월세', typeof c.monthlyRent==='number'?fmt(c.monthlyRent):String(c.monthlyRent||'-')) +
-    item('관리비', typeof c.mgmtFee==='number'?fmt(c.mgmtFee):String(c.mgmtFee||'-')) +
-    item('수수료', typeof c.serviceFee==='number'?fmt(c.serviceFee):String(c.serviceFee||'-')) +
-    item('보증금', typeof c.deposit==='number'?fmt(c.deposit):String(c.deposit||'-'));
+    item('월세', typeof c.monthlyRent==='number'&&c.monthlyRent?fmt(c.monthlyRent):'-') +
+    item('관리비', typeof c.mgmtFee==='number'&&c.mgmtFee?fmt(c.mgmtFee):'-') +
+    item('수수료', typeof c.serviceFee==='number'&&c.serviceFee?fmt(c.serviceFee):'-') +
+    item('보증금', typeof c.deposit==='number'&&c.deposit?fmt(c.deposit):'-');
 
-  // 연체 내역 섹션
+  // 연체 내역
   const oSec = document.getElementById('recOverdueSection');
   const oContent = document.getElementById('recOverdueContent');
   oSec.style.display = 'block';
 
   const rentAmt = typeof c.overdueAmt==='number' ? c.overdueAmt : 0;
   const exitAmt = typeof c.exitSettle==='number' ? c.exitSettle : 0;
+  const statusCls = (s) => s==='연체' ? 'status-bad' : s==='정상' ? 'status-ok' : '';
+  const overdueCntNum = parseInt(c.overdueCnt) || 0;
+  const ratioNum = parseInt(c.overdueRatio) || 0;
 
   oContent.innerHTML = `
     <table class="rec-overdue-table">
       <tr><th>항목</th><th>상태</th><th style="text-align:right">금액</th></tr>
-      <tr><td>임대료</td><td>${c.rentOverdue||'-'}</td><td class="amount${c.rentOverdue==='연체'?' red':''}">${rentAmt?fmt(rentAmt):'-'}</td></tr>
-      <tr><td>수수료</td><td>${c.feeOverdue||'-'}</td><td class="amount${c.feeOverdue==='연체'?' red':''}">-</td></tr>
-      <tr><td>기타관리비</td><td>${c.etcOverdue||'-'}</td><td class="amount">-</td></tr>
+      <tr><td>임대료</td><td class="${statusCls(c.rentOverdue)}">${c.rentOverdue||'-'}</td><td class="amount${c.rentOverdue==='연체'?' red':''}">${rentAmt?fmt(rentAmt):'-'}</td></tr>
+      <tr><td>수수료</td><td class="${statusCls(c.feeOverdue)}">${c.feeOverdue||'-'}</td><td class="amount">-</td></tr>
+      <tr><td>기타관리비</td><td class="${statusCls(c.etcOverdue)}">${c.etcOverdue||'-'}</td><td class="amount">-</td></tr>
       <tr><td>퇴실정산</td><td>-</td><td class="amount${exitAmt>0?' red':''}">${exitAmt?fmt(exitAmt):'-'}</td></tr>
     </table>
     <div class="rec-overdue-summary">
       <div class="rec-overdue-stat"><div class="ros-val">${c.billingCnt||'-'}</div><div class="ros-lbl">청구수</div></div>
-      <div class="rec-overdue-stat"><div class="ros-val">${c.overdueCnt||'-'}</div><div class="ros-lbl">연체횟수</div></div>
+      <div class="rec-overdue-stat${overdueCntNum>=5?' warn':''}"><div class="ros-val">${c.overdueCnt||'-'}</div><div class="ros-lbl">연체횟수</div></div>
       <div class="rec-overdue-stat"><div class="ros-val">${c.maxOverdueDays||'-'}</div><div class="ros-lbl">최장연체일</div></div>
-      <div class="rec-overdue-stat"><div class="ros-val">${c.overdueRatio||'-'}</div><div class="ros-lbl">연체비율</div></div>
+      <div class="rec-overdue-stat${ratioNum>=50?' warn':''}"><div class="ros-val">${c.overdueRatio||'-'}</div><div class="ros-lbl">연체비율</div></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+    <div class="rec-overdue-summary" style="grid-template-columns:1fr 1fr;">
       <div class="rec-overdue-stat"><div class="ros-val">${c.totalOverdueDays||'-'}</div><div class="ros-lbl">연체누적일</div></div>
       <div class="rec-overdue-stat"><div class="ros-val">${c.firstOverdue||'-'}</div><div class="ros-lbl">첫 연체</div></div>
     </div>`;
