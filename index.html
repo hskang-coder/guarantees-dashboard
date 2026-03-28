@@ -64,6 +64,7 @@
   .upload-btns button:hover { opacity:.8; }
   .data-source-tag { display:inline-block; font-size:9px; padding:2px 6px; border-radius:4px; margin-left:4px; font-weight:600; }
   .data-source-tag.github { background:rgba(0,212,255,0.15); color:var(--cyan); }
+  .data-source-tag.sheets { background:rgba(0,255,150,0.15); color:#00ff96; }
   .data-source-tag.csv { background:rgba(0,255,136,0.12); color:var(--green-neon); }
   .data-source-tag.cache { background:rgba(124,77,255,0.15); color:#b39dff; }
   .data-source-tag.sample { background:rgba(233,30,140,0.12); color:#ff80ab; }
@@ -524,7 +525,7 @@
 
 <script>
 // ═══ CONFIG ══════════════════════════════════════════════════════
-const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/hskang-coder/guarantees-dashboard/main/data.json';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxmO3Fa1FbkdbpF2cf_miWQsUz2VnrtKBMFYnfJsuQc_O_BG-i7QOuDoznueI_jM5x9/exec';
 const CACHE_KEY = 'guarantees_dashboard_data';
 const CACHE_TS_KEY = 'guarantees_dashboard_ts';
 
@@ -663,10 +664,12 @@ function parseField(s) {
   if (/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/.test(s)) return s;
   return s;
 }
-async function fetchGitHubData() {
-  const resp = await fetch(GITHUB_DATA_URL + '?t=' + Date.now(), { cache: 'no-store' });
-  if (!resp.ok) throw new Error('GitHub fetch failed: ' + resp.status);
-  return await resp.json();
+async function fetchSheetsData() {
+  const resp = await fetch(SHEETS_API_URL, { redirect: 'follow', cache: 'no-store' });
+  if (!resp.ok) throw new Error('Sheets fetch failed: ' + resp.status);
+  const data = await resp.json();
+  if (data.error) throw new Error('Sheets error: ' + data.error);
+  return data;
 }
 function loadCache() { try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
 function saveCache(data) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); localStorage.setItem(CACHE_TS_KEY, new Date().toISOString()); } catch(e) {} }
@@ -1306,7 +1309,7 @@ function renderFromData(data, source) {
   buildContractMap(data['계약관리'] || []);
   renderGradeChart(data['계약관리'] || []);
   const ts = data.updated ? new Date(data.updated).toLocaleString('ko-KR', {timeZone:'Asia/Seoul'}) : new Date().toLocaleString('ko-KR', {timeZone:'Asia/Seoul'});
-  const tagMap = { github:'<span class="data-source-tag github">GitHub</span>', csv:'<span class="data-source-tag csv">CSV</span>', cache:'<span class="data-source-tag cache">캐시</span>', sample:'<span class="data-source-tag sample">샘플</span>' };
+  const tagMap = { sheets:'<span class="data-source-tag sheets">실시간</span>', github:'<span class="data-source-tag github">GitHub</span>', csv:'<span class="data-source-tag csv">CSV</span>', cache:'<span class="data-source-tag cache">캐시</span>', sample:'<span class="data-source-tag sample">샘플</span>' };
   document.getElementById('lastUpdate').innerHTML = '업데이트: ' + ts + (tagMap[source] || '');
 }
 
@@ -1329,8 +1332,8 @@ async function loadAll() {
   document.getElementById('lastUpdate').textContent = '로딩 중…';
   document.getElementById('notice').style.display = 'none';
   try {
-    const data = await fetchGitHubData();
-    if (data && data['연체관리'] && data['연체관리'].length > 0) { saveCache(data); renderFromData(data, 'github'); return; }
+    const data = await fetchSheetsData();
+    if (data && data['연체관리'] && data['연체관리'].length > 0) { saveCache(data); renderFromData(data, 'sheets'); return; }
   } catch(e) { console.warn('GitHub fetch failed:', e.message); }
   const cached = loadCache();
   if (cached && cached['연체관리'] && cached['연체관리'].length > 0) { renderFromData(cached, 'cache'); return; }
