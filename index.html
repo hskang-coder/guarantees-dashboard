@@ -525,7 +525,7 @@
 
 <script>
 // ═══ CONFIG ══════════════════════════════════════════════════════
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxmO3Fa1FbkdbpF2cf_miWQsUz2VnrtKBMFYnfJsuQc_O_BG-i7QOuDoznueI_jM5x9/exec';
+// Google Sheets gviz direct connection - no sync needed
 const CACHE_KEY = 'guarantees_dashboard_data';
 const CACHE_TS_KEY = 'guarantees_dashboard_ts';
 
@@ -664,11 +664,35 @@ function parseField(s) {
   if (/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/.test(s)) return s;
   return s;
 }
-async function fetchGitHubData() {
-  const GITHUB_RAW = 'https://raw.githubusercontent.com/hskang-coder/guarantees-dashboard/main/data.json';
-  const resp = await fetch(GITHUB_RAW + '?t=' + Date.now(), { cache: 'no-store' });
-  if (!resp.ok) throw new Error('GitHub fetch failed: ' + resp.status);
-  return await resp.json();
+function fetchSheetsData() {
+  return new Promise((resolve, reject) => {
+    const SHEET_ID = '1Z3w9ZhKwiLfL4JJhs-gfcU27QLKgZAWycyGFCK4iiMc';
+    const SHEET_GID = '552286051';
+    const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+      '/gviz/tq?tqx=responseHandler:__sheetsCB&gid=' + SHEET_GID + '&headers=0&tq=' +
+      encodeURIComponent('SELECT *') + '&_=' + Date.now();
+    window.__sheetsCB = function(resp) {
+      delete window.__sheetsCB;
+      if (!resp || !resp.table) { reject(new Error('No table data')); return; }
+      const rows = [];
+      for (const r of resp.table.rows) {
+        rows.push(r.c.map(cell => {
+          if (!cell || cell.v === null || cell.v === undefined) return '';
+          if (typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+            const m = cell.v.match(/Date\((\d+),(\d+),(\d+)/);
+            if (m) return (parseInt(m[1])) + '. ' + (parseInt(m[2])+1) + '. ' + parseInt(m[3]);
+          }
+          return cell.v;
+        }));
+      }
+      resolve({ updated: new Date().toISOString(), '연체관리': rows });
+    };
+    const s = document.createElement('script');
+    s.src = url;
+    s.onerror = () => reject(new Error('Failed to load Google Sheets'));
+    document.head.appendChild(s);
+    setTimeout(() => reject(new Error('Sheets timeout')), 20000);
+  });
 }
 function loadCache() { try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
 function saveCache(data) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); localStorage.setItem(CACHE_TS_KEY, new Date().toISOString()); } catch(e) {} }
@@ -1331,8 +1355,8 @@ async function loadAll() {
   document.getElementById('lastUpdate').textContent = '로딩 중…';
   document.getElementById('notice').style.display = 'none';
   try {
-    const data = await fetchGitHubData();
-    if (data && data['연체관리'] && data['연체관리'].length > 0) { saveCache(data); renderFromData(data, 'github'); return; }
+    const data = await fetchSheetsData();
+    if (data && data['연체관리'] && data['연체관리'].length > 0) { saveCache(data); renderFromData(data, 'sheets'); return; }
   } catch(e) { console.warn('GitHub fetch failed:', e.message); }
   const cached = loadCache();
   if (cached && cached['연체관리'] && cached['연체관리'].length > 0) { renderFromData(cached, 'cache'); return; }
